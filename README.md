@@ -104,7 +104,7 @@ Once the server is running, access the API documentation at:
 | Method | Endpoint | Description | Access |
 |--------|----------|-------------|--------|
 | GET | `/api/users` | Get all users | Admin |
-| GET | `/api/users/:id` | Get user by ID | Admin/Manager |
+| GET | `/api/users/:id` | Get user by ID | Admin |
 | PUT | `/api/users/:id` | Update user | Admin |
 | DELETE | `/api/users/:id` | Delete user | Admin |
 | PUT | `/api/users/:id/role` | Update user role | Admin |

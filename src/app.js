@@ -10,6 +10,9 @@ import cookieParser from 'cookie-parser';
 import swaggerSpec from './config/swagger.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import noteRoutes from './routes/noteRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
+import fileRoutes from './routes/fileRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -77,6 +80,9 @@ app.get('/api-docs.json', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/notes', noteRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/files', fileRoutes);
 
 // 404 handlers
 app.use((req, res) => {

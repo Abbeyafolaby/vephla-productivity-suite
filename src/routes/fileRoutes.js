@@ -159,6 +159,23 @@ router.get('/:id/download', protect, downloadFile);
  *         required: true
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               isPublic:
+ *                 type: boolean
+ *                 description: Whether the file is publicly accessible
+ *               uploadedFor:
+ *                 type: string
+ *                 enum: [note, task, profile, general]
+ *                 description: Purpose of the file upload
+ *               relatedDocument:
+ *                 type: string
+ *                 description: Related document ID (note or task)
  *     responses:
  *       200:
  *         description: File updated successfully

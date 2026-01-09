@@ -165,6 +165,34 @@ router.get('/:id', protect, getTaskById);
  *         required: true
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *                 enum: [todo, in_progress, completed, cancelled]
+ *               priority:
+ *                 type: string
+ *                 enum: [low, medium, high, urgent]
+ *               dueDate:
+ *                 type: string
+ *                 format: date-time
+ *               assignedTo:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *     responses:
  *       200:
  *         description: Task updated successfully

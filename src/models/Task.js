@@ -84,7 +84,7 @@ taskSchema.index({ status: 1, dueDate: 1 });
 taskSchema.index({ title: 'text', description: 'text' });
 
 // Virtual for checking if overdue
-taskSchema.virtual('isOverdue').get(function() {
+taskSchema.virtual('isOverdue').get(function () {
   if (!this.dueDate || this.status === 'completed' || this.status === 'cancelled') {
     return false;
   }
@@ -92,18 +92,17 @@ taskSchema.virtual('isOverdue').get(function() {
 });
 
 // Virtual for days until due
-taskSchema.virtual('daysUntilDue').get(function() {
+taskSchema.virtual('daysUntilDue').get(function () {
   if (!this.dueDate) return null;
   const diff = this.dueDate - new Date();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 });
 
 // Pre-save hook to set completedAt
-taskSchema.pre('save', function(next) {
+taskSchema.pre('save', function () {
   if (this.isModified('status') && this.status === 'completed' && !this.completedAt) {
     this.completedAt = new Date();
   }
-  next();
 });
 
 // Ensure virtuals are included

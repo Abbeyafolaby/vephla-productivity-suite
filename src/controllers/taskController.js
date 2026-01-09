@@ -1,5 +1,7 @@
 import Task from '../models/Task.js';
 import logger from '../utils/logger.js';
+import { getIO } from '../config/socket.js';
+import { notifyUser } from '../services/socketService.js';
 
 /**
  * @desc    Create a new task
@@ -22,6 +24,21 @@ export const createTask = async (req, res) => {
     });
 
     logger.info(`Task created: ${task._id} by user: ${req.user.email}`);
+
+    // Notify assigned users
+    if (assignedTo && assignedTo.length > 0) {
+      const io = getIO();
+      assignedTo.forEach(userId => {
+        // Don't notify self if self-assigned (optional check)
+        if (userId.toString() !== req.user.id) {
+          notifyUser(io, userId, {
+            type: 'TASK_ASSIGNED',
+            message: `${req.user.email} assigned you a task: "${task.title}"`,
+            data: task
+          });
+        }
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -63,7 +80,7 @@ export const getTasks = async (req, res) => {
         { assignedTo: req.user.id }
       ]
     };
-    
+
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
     if (search) {
@@ -146,8 +163,8 @@ export const getTaskById = async (req, res) => {
     }
 
     // Check access
-    const hasAccess = task.owner.toString() === req.user.id || 
-                     task.assignedTo.some(user => user._id.toString() === req.user.id);
+    const hasAccess = task.owner.toString() === req.user.id ||
+      task.assignedTo.some(user => user._id.toString() === req.user.id);
 
     if (!hasAccess) {
       return res.status(403).json({
@@ -162,14 +179,14 @@ export const getTaskById = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get task by ID error:', error);
-    
+
     if (error.kind === 'ObjectId') {
       return res.status(404).json({
         success: false,
         message: 'Task not found'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -194,8 +211,8 @@ export const updateTask = async (req, res) => {
     }
 
     // Check if user can update (owner or assigned)
-    const canUpdate = task.owner.toString() === req.user.id || 
-                     task.assignedTo.some(user => user.toString() === req.user.id);
+    const canUpdate = task.owner.toString() === req.user.id ||
+      task.assignedTo.some(user => user.toString() === req.user.id);
 
     if (!canUpdate) {
       return res.status(403).json({
@@ -235,14 +252,14 @@ export const updateTask = async (req, res) => {
     });
   } catch (error) {
     logger.error('Update task error:', error);
-    
+
     if (error.kind === 'ObjectId') {
       return res.status(404).json({
         success: false,
         message: 'Task not found'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -284,14 +301,14 @@ export const deleteTask = async (req, res) => {
     });
   } catch (error) {
     logger.error('Delete task error:', error);
-    
+
     if (error.kind === 'ObjectId') {
       return res.status(404).json({
         success: false,
         message: 'Task not found'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -325,8 +342,8 @@ export const updateTaskStatus = async (req, res) => {
     }
 
     // Check access
-    const hasAccess = task.owner.toString() === req.user.id || 
-                     task.assignedTo.some(user => user.toString() === req.user.id);
+    const hasAccess = task.owner.toString() === req.user.id ||
+      task.assignedTo.some(user => user.toString() === req.user.id);
 
     if (!hasAccess) {
       return res.status(403).json({
@@ -376,7 +393,7 @@ export const getTaskStats = async (req, res) => {
     const todo = await Task.countDocuments({ ...filter, status: 'todo' });
     const inProgress = await Task.countDocuments({ ...filter, status: 'in_progress' });
     const completed = await Task.countDocuments({ ...filter, status: 'completed' });
-    
+
     // Overdue tasks
     const overdue = await Task.countDocuments({
       ...filter,

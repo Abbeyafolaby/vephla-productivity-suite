@@ -1,5 +1,7 @@
 import Note from '../models/Note.js';
 import logger from '../utils/logger.js';
+import { getIO } from '../config/socket.js';
+import { notifyUser } from '../services/socketService.js';
 
 /**
  * @desc    Create a new note
@@ -21,6 +23,14 @@ export const createNote = async (req, res) => {
     });
 
     logger.info(`Note created: ${note._id} by user: ${req.user.email}`);
+
+    // Notify user (confirmation)
+    const io = getIO();
+    notifyUser(io, req.user.id, {
+      type: 'NOTE_CREATED',
+      message: `Note "${note.title}" created successfully`,
+      data: note
+    });
 
     res.status(201).json({
       success: true,
@@ -57,7 +67,7 @@ export const getNotes = async (req, res) => {
 
     // Build filter
     const filter = { owner: req.user.id };
-    
+
     if (category) filter.category = category;
     if (isPinned !== undefined) filter.isPinned = isPinned === 'true';
     if (tags) {
@@ -122,8 +132,8 @@ export const getNoteById = async (req, res) => {
     }
 
     // Check ownership or shared access
-    const hasAccess = note.owner.toString() === req.user.id || 
-                     note.sharedWith.some(share => share.user.toString() === req.user.id);
+    const hasAccess = note.owner.toString() === req.user.id ||
+      note.sharedWith.some(share => share.user.toString() === req.user.id);
 
     if (!hasAccess) {
       return res.status(403).json({
@@ -138,14 +148,14 @@ export const getNoteById = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get note by ID error:', error);
-    
+
     if (error.kind === 'ObjectId') {
       return res.status(404).json({
         success: false,
         message: 'Note not found'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -203,14 +213,14 @@ export const updateNote = async (req, res) => {
     });
   } catch (error) {
     logger.error('Update note error:', error);
-    
+
     if (error.kind === 'ObjectId') {
       return res.status(404).json({
         success: false,
         message: 'Note not found'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -252,14 +262,14 @@ export const deleteNote = async (req, res) => {
     });
   } catch (error) {
     logger.error('Delete note error:', error);
-    
+
     if (error.kind === 'ObjectId') {
       return res.status(404).json({
         success: false,
         message: 'Note not found'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -298,7 +308,7 @@ export const shareNote = async (req, res) => {
       const alreadyShared = note.sharedWith.some(
         share => share.user.toString() === userId
       );
-      
+
       if (!alreadyShared) {
         note.sharedWith.push({ user: userId, permission });
       }
@@ -308,6 +318,16 @@ export const shareNote = async (req, res) => {
     await note.save();
 
     logger.info(`Note shared: ${note._id} by user: ${req.user.email}`);
+
+    // Notify shared users
+    const io = getIO();
+    userIds.forEach(userId => {
+      notifyUser(io, userId, {
+        type: 'NOTE_SHARED',
+        message: `${req.user.email} shared a note with you: "${note.title}"`,
+        data: note
+      });
+    });
 
     res.status(200).json({
       success: true,

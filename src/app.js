@@ -16,6 +16,9 @@ import noteRoutes from './routes/noteRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import fileRoutes from './routes/fileRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import { graphqlHTTP } from 'express-graphql';
+import schema from './graphql/schema.js';
+import resolvers from './graphql/resolvers.js';
 
 // Load environment variables
 dotenv.config();
@@ -98,6 +101,16 @@ app.use('/api/notes', noteRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/chat', chatRoutes);
+
+// GraphQL Endpoint
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: schema,
+    rootValue: resolvers,
+    graphiql: true,
+  })
+);
 
 // 404 handlers
 app.use((req, res) => {

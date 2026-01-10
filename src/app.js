@@ -32,7 +32,9 @@ const app = express();
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
+}));
 
 // CORS
 app.use(cors({
@@ -108,7 +110,8 @@ app.use(
   graphqlHTTP({
     schema: schema,
     rootValue: resolvers,
-    graphiql: true,
+    graphiql: true, // Enable GraphiQL interface
+    pretty: true,   // Pretty print JSON responses
   })
 );
 

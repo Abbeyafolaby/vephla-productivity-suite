@@ -24,6 +24,7 @@ const schema = buildSchema(`
     status: String
     priority: String
     dueDate: String
+    tags: [String]
     createdAt: String
     updatedAt: String
   }
@@ -35,6 +36,15 @@ const schema = buildSchema(`
     category: String
   }
 
+  input TaskInput {
+    title: String!
+    description: String
+    status: String
+    priority: String
+    dueDate: String
+    tags: [String]
+  }
+
   type Query {
     getNotes: [Note]
     getTasks: [Task]
@@ -42,6 +52,8 @@ const schema = buildSchema(`
 
   type Mutation {
     addNote(input: NoteInput): Note
+    # NEW: Add Task Mutation
+    addTask(input: TaskInput): Task
   }
 `);
 

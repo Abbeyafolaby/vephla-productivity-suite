@@ -32,7 +32,6 @@ const resolvers = {
 
     addNote: async ({ input }) => {
         try {
-            // Find a user to assign as owner (since auth is skipped for this bonus task demo)
             const User = (await import('../models/User.js')).default;
             const user = await User.findOne();
 
@@ -58,6 +57,38 @@ const resolvers = {
         } catch (error) {
             console.error(error);
             throw new Error('Error adding note: ' + error.message);
+        }
+    },
+
+    addTask: async ({ input }) => {
+        try {
+            const User = (await import('../models/User.js')).default;
+            const user = await User.findOne();
+
+            if (!user) {
+                throw new Error('No user found to assign task to. Please create a user first.');
+            }
+
+            const newTask = new Task({
+                title: input.title,
+                description: input.description,
+                status: input.status || 'todo',
+                priority: input.priority || 'medium',
+                dueDate: input.dueDate,
+                tags: input.tags,
+                owner: user._id
+            });
+
+            const savedTask = await newTask.save();
+            return {
+                ...savedTask._doc,
+                id: savedTask._id.toString(),
+                createdAt: savedTask.createdAt.toISOString(),
+                updatedAt: savedTask.updatedAt.toISOString()
+            };
+        } catch (error) {
+            console.error(error);
+            throw new Error('Error adding task: ' + error.message);
         }
     }
 };

@@ -146,74 +146,175 @@ Once the server is running, access the API documentation at:
 | GET | `/api/chats/rooms/:id/messages` | Get room messages | Private |
 | POST | `/api/chats/rooms/:id/messages` | Send message | Private |
 
-### GraphQL Endpoints
-**Endpoint:** `/graphql`
+## GraphQL API
 
-**Sample Queries:**
+### Endpoint
+```
+POST/GET http://localhost:5000/graphql
+```
+
+### Interactive Playground
+Access the GraphiQL interface at: **`http://localhost:5000/graphql`**
+
+The GraphiQL playground provides:
+- Auto-completion for queries and mutations
+- Schema documentation browser
+- Query history
+- Interactive query building
+
+### Available Queries
+
+#### 1. Get All Notes
 ```graphql
-# Get current user
 query {
-  me {
+  getNotes {
     id
-    username
-    email
-    role
+    title
+    content
+    tags
+    category
+    createdAt
+    updatedAt
   }
 }
+```
 
-# Get all tasks
+**Example Response:**
+```json
+{
+  "data": {
+    "getNotes": [
+      {
+        "id": "507f1f77bcf86cd799439011",
+        "title": "Meeting Notes",
+        "content": "Discussed Q1 objectives",
+        "tags": ["meeting", "important"],
+        "category": "Work",
+        "createdAt": "2026-01-10T10:30:00.000Z",
+        "updatedAt": "2026-01-10T10:30:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+#### 2. Get All Tasks
+```graphql
 query {
-  tasks {
+  getTasks {
     id
     title
     description
     status
     priority
     dueDate
+    createdAt
+    updatedAt
   }
 }
+```
 
-# Get all notes
-query {
-  notes {
+**Example Response:**
+```json
+{
+  "data": {
+    "getTasks": [
+      {
+        "id": "507f1f77bcf86cd799439012",
+        "title": "Complete documentation",
+        "description": "Write API documentation",
+        "status": "in_progress",
+        "priority": "high",
+        "dueDate": "2026-01-15T00:00:00.000Z",
+        "createdAt": "2026-01-10T09:00:00.000Z",
+        "updatedAt": "2026-01-10T14:30:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+### Available Mutations
+
+#### 1. Add Note
+```graphql
+mutation {
+  addNote(input: {
+    title: "New Note"
+    content: "This is the note content"
+    tags: ["important", "work"]
+    category: "Work"
+  }) {
     id
     title
     content
-    category
     tags
+    category
+    createdAt
   }
 }
 ```
 
-**Sample Mutations:**
+**Example Response:**
+```json
+{
+  "data": {
+    "addNote": {
+      "id": "507f1f77bcf86cd799439013",
+      "title": "New Note",
+      "content": "This is the note content",
+      "tags": ["important", "work"],
+      "category": "Work",
+      "createdAt": "2026-01-10T15:45:00.000Z"
+    }
+  }
+}
+```
+
+#### 2. Add Task
 ```graphql
-# Create task
 mutation {
-  createTask(input: {
-    title: "Complete project"
-    description: "Finish the productivity suite"
-    priority: HIGH
-    dueDate: "2024-12-31"
+  addTask(input: {
+    title: "Implement GraphQL mutations"
+    description: "Add create, update, and delete mutations for tasks"
+    status: "in_progress"
+    priority: "high"
+    dueDate: "2026-01-15T23:59:59.000Z"
+    tags: ["backend", "graphql", "urgent"]
   }) {
     id
     title
+    description
     status
-  }
-}
-
-# Create note
-mutation {
-  createNote(input: {
-    title: "Meeting Notes"
-    content: "Discussion points..."
-    category: "Work"
-    tags: ["meeting", "important"]
-  }) {
-    id
-    title
+    priority
+    dueDate
+    tags
+    createdAt
+    updatedAt
   }
 }
 ```
+
+**Example Response:**
+```json
+{
+  "data": {
+    "addTask": {
+      "id": "507f1f77bcf86cd799439012",
+      "title": "Implement GraphQL mutations",
+      "description": "Add create, update, and delete mutations for tasks",
+      "status": "in_progress",
+      "priority": "high",
+      "dueDate": "2026-01-15T23:59:59.000Z",
+      "tags": ["backend", "graphql", "urgent"],
+      "createdAt": "2026-01-10T16:35:00.000Z",
+      "updatedAt": "2026-01-10T16:35:00.000Z"
+    }
+  }
+}
+```
+
+
 
 ### WebSocket Events (Socket.io)
 | Event | Description | Payload |
@@ -233,15 +334,13 @@ mutation {
 vephla-productivity-suite/
 ├── src/
 │   ├── config/
-│   │   ├── database.js
-│   │   ├── cloudinary.js
+│   │   ├── db.js
+│   │   ├── socket.js
 │   │   └── swagger.js
 │   ├── models/
 │   │   ├── User.js
 │   │   ├── Note.js
 │   │   ├── Task.js
-│   │   ├── ChatRoom.js
-│   │   ├── Message.js
 │   │   └── File.js
 │   ├── controllers/
 │   │   ├── authController.js
@@ -259,40 +358,30 @@ vephla-productivity-suite/
 │   │   └── fileRoutes.js
 │   ├── middleware/
 │   │   ├── auth.js
-│   │   ├── rbac.js
-│   │   ├── errorHandler.js
-│   │   ├── validator.js
 │   │   └── upload.js
+│   ├── validators/
+│   │   └── authValidators.js
 │   ├── graphql/
 │   │   ├── schema.js
-│   │   ├── resolvers/
-│   │   │   ├── userResolvers.js
-│   │   │   ├── noteResolvers.js
-│   │   │   └── taskResolvers.js
-│   │   └── typeDefs/
-│   │       ├── user.js
-│   │       ├── note.js
-│   │       └── task.js
+│   │   ├── resolvers.js
 │   ├── services/
-│   │   ├── authService.js
-│   │   ├── emailService.js
-│   │   └── fileService.js
+│   │   ├── socketService.js
 │   ├── utils/
 │   │   ├── logger.js
-│   │   ├── errorResponse.js
-│   │   └── helpers.js
-│   ├── sockets/
-│   │   └── chatSocket.js
 │   ├── app.js
 │   └── server.js
 ├── tests/
 │   ├── unit/
 │   └── integration/
+│       ├── auth.test.js
+│       ├── file.test.js
+│       ├── note.test.js
+│       ├── task.test.js
+│       ├── socket.test.js
+│       └── user.test.js
 ├── uploads/
 ├── docs/
-│   ├── architecture.md
 │   ├── erd.png
-│   └── api-examples.md
 ├── .env.example
 ├── .gitignore
 ├── package.json

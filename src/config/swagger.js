@@ -22,7 +22,7 @@ const options = {
         description: 'Development server'
       },
       {
-        url: 'pending',
+        url: 'https://vephla-productivity-suite-brgr.onrender.com',
         description: 'Production server'
       }
     ],
